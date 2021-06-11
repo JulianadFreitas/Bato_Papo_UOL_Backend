@@ -2,16 +2,15 @@ import express from 'express';
 import cors from 'cors';
 import dayjs from 'dayjs';
 
-
-
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.json());
-
+let recentMessages = [];
 let participants = [];
 let messagesInfos =[];
 let dataMessage = {};
+
 //{from: 'João', to: 'Todos', text: 'oi galera', type: 'message', time: '20:04:37'} message format
 
 
@@ -36,7 +35,7 @@ app.post("/participants", (req, res)=> {
     participants.push(participant);
 //const jsonP = JSON.pars(participants))
 console.log("oii");
-JSON.stringify(participants);
+//JSON.stringify(participants);
 res.json(JSON.stringify(participants));
 
 }); 
@@ -69,11 +68,10 @@ console.log(dayjs().format('HH:MM:SS'));
 res.send(dataMessage);
 }); 
 
-app.get("/messages?limit", (req, res)=> {
-    const headerOfMessages = req.headers;
-    const userMessages = req.body;
-    
-    res.send(dataMessage);
+app.get("/messages", (req, res)=> {
+    const limit =  req.query.limit;
+    limit? res.send(messagesInfos.slice(-limit)) : res.send(messagesInfos);
+    console.log("limit",limit,messagesInfos.slice(-limit));
 }); 
 
 app.listen(4000, () => {
