@@ -6,38 +6,35 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.json());
-let recentMessages = [];
 let participants = [];
 let messagesInfos =[];
 let dataMessage = {};
 
-//{from: 'João', to: 'Todos', text: 'oi galera', type: 'message', time: '20:04:37'} message format
-
-
-app.post("/participants", (req, res)=> {
+app.post("/participants", (req, res)=> { try{
     const userName = req.body;
 
-    app.use(function (res) {
-        if(userName === "") { 
-            res.status(400).send('CHECK YOUR NAME');
-            return
-             }
-      })
-    // if(userName === "") { 
-    //    res.status(400).send('CHECK YOUR NAME');
-    //    return
-    //     }
         const participant = {
         name: userName.name, 
         lastStatus: Date.now()
         }
+    
+    if(!participants.some(({name}) => name === participant.name)) {
+     participants.push(participant);
 
-    participants.push(participant);
-//const jsonP = JSON.pars(participants))
-console.log("oii");
-//JSON.stringify(participants);
-res.json(JSON.stringify(participants));
-
+     messagesInfos.push(
+        {from: participant.name,
+         to: 'Todos',
+         text: 'entra na sala...',
+         type: 'status',
+         time: dayjs().format('HH:mm:ss')}
+     );  
+     console.log("oii");
+     return res.sendStatus(200);
+    } res.sendStatus(400);
+    
+   
+    //deixar do status de send
+}catch(e){console.log(e)}
 }); 
 
 
@@ -49,23 +46,28 @@ res.send(headerOfParticipants.user);
 
 }); 
 
-
 app.post("/messages", (req, res)=> {
     const headerOfMessages = req.headers;
     const userMessages = req.body;
-     dataMessage = {
+    dataMessage = {
       from: headerOfMessages.user,
       to: userMessages.to,
       text: userMessages.text,
       type: userMessages.type, 
       time: dayjs().format('HH:mm:ss')
-    };
-   messagesInfos.push(dataMessage);
-//JSON.stringify(participants);
+    }; 
+const participant = participants.find((e) => e.name === dataMessage.from);
+    if ((participant) && (dataMessage.to !== "") && (dataMessage.type === "message" || "private_message")){
+    //&& (dataMessage.to !== "") && (type === ("message" || "private_message"))
+    
+    messagesInfos.push(dataMessage);
+    console.log(dataMessage);
+
+    return  res.sendStatus(200)
+    } else res.sendStatus(400)
 console.log("tecsted");
-console.log(messagesInfos);
+console.log(dataMessage);
 console.log(dayjs().format('HH:MM:SS'));
-res.send(dataMessage);
 }); 
 
 app.get("/messages", (req, res)=> {
@@ -74,7 +76,32 @@ app.get("/messages", (req, res)=> {
     console.log("limit",limit,messagesInfos.slice(-limit));
 }); 
 
+app.post("/status", (req, res)=> {
+    const user = req.header('User');
+    const participant = participants.find((e, i) => e.name === user);
+    console.log(user);
+    participant ? participant.lastStatus = Date.now() &&  res.sendStatus(200) : res.sendStatus(400) ;
+}); 
+
+
+
+
+setInterval(() => {
+
+  participants = participants.filter(element => {
+      if ((Date.now() - element.lastStatus) < 10000) {
+          return true
+      }
+         else {
+            messagesInfos.push({from: element.name, to: 'Todos', text: 'sai da sala...', type: 'status', time: dayjs().format('HH:mm:ss')})
+             return false
+         }    
+     })
+   
+}, 15000)
+
+
 app.listen(4000, () => {
-    console.log("rodandol");
+    console.log("rodanfdo");
     console.log(participants)
 });
