@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import dayjs from 'dayjs';
 import joi from 'joi';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
+import path from 'path';
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -9,6 +12,19 @@ app.use(express.json());
 let participants = [];
 let messagesInfos = [];
 let dataMessage = {};
+
+if (existsSync('participants.json')) {
+    let savedParticipants = JSON.parse(readFileSync(path.resolve("participants.json")));
+    participants=savedParticipants;
+}
+else {
+    participants = [];
+}
+
+function saveParticipants () {
+    writeFileSync('participants.json', JSON.stringify(participants))
+}
+
 
 app.post("/participants", (req, res) => {
     const userName = req.body;
@@ -39,6 +55,8 @@ app.post("/participants", (req, res) => {
                 time: dayjs().format('HH:mm:ss')
             }
         );
+
+        saveParticipants()
         return res.sendStatus(200);
     } res.sendStatus(400);
 
@@ -79,7 +97,11 @@ app.post("/messages", (req, res) => {
 
 app.get("/messages", (req, res) => {
     const limit = req.query.limit;
-    limit ? res.send(messagesInfos.slice(-limit)) : res.send(messagesInfos);
+    const user = req.header("User")
+
+    const messagesFiltered = messagesInfos.filter(element => (element.type === "private_message" && element.to === user) || element.type === "status" || element.to === user || element.from === user || element.to === "Todos");
+
+    limit ? res.send(messagesFiltered.slice(-limit)) : res.send(messagesFiltered);
 });
 
 app.post("/status", (req, res) => {
