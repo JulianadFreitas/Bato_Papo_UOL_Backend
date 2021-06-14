@@ -2,8 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import dayjs from 'dayjs';
 import joi from 'joi';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
-import path from 'path';
 
 const app = express();
 app.use(cors());
@@ -13,19 +11,6 @@ let participants = [];
 let messagesInfos = [];
 let dataMessage = {};
 
-if (existsSync('participants.json')) {
-    let savedParticipants = JSON.parse(readFileSync(path.resolve("participants.json")));
-    participants=savedParticipants;
-}
-else {
-    participants = [];
-}
-
-function saveParticipants () {
-    writeFileSync('participants.json', JSON.stringify(participants))
-}
-
-
 app.post("/participants", (req, res) => {
     const userName = req.body;
 
@@ -34,18 +19,13 @@ app.post("/participants", (req, res) => {
     });
 
     const isValid = schema.validate(req.body);
-
-    if(isValid.error) return res.sendStatus(422);
-
-   
-
+    if (isValid.error) return res.sendStatus(422);
     if (!participants.some(({ name }) => name === participant.name)) {
-         const participant = {
-        name: userName.name,
-        lastStatus: Date.now()
-    }
+        const participant = {
+            name: userName.name,
+            lastStatus: Date.now()
+        }
         participants.push(participant);
-
         messagesInfos.push(
             {
                 from: participant.name,
@@ -55,15 +35,13 @@ app.post("/participants", (req, res) => {
                 time: dayjs().format('HH:mm:ss')
             }
         );
-
-        saveParticipants()
         return res.sendStatus(200);
     } res.sendStatus(400);
 
 });
 
 app.get("/participants", (req, res) => {
-     res.send(participants);
+    res.send(participants);
 });
 
 app.post("/messages", (req, res) => {
@@ -74,12 +52,12 @@ app.post("/messages", (req, res) => {
     const schema = joi.object({
         to: joi.string().required(),
         text: joi.string().required(),
-        type:  joi.string().valid("message", "private_message").required()
+        type: joi.string().valid("message", "private_message").required()
     });
 
     const isValid = schema.validate(req.body);
 
-    if(isValid.error) return res.sendStatus(422);
+    if (isValid.error) return res.sendStatus(422);
     dataMessage = {
         from: headerOfMessages.user,
         to: userMessages.to,
@@ -97,7 +75,7 @@ app.post("/messages", (req, res) => {
 
 app.get("/messages", (req, res) => {
     const limit = req.query.limit;
-    const user = req.header("User")
+    const user = req.header("User");
 
     const messagesFiltered = messagesInfos.filter(element => (element.type === "private_message" && element.to === user) || element.type === "status" || element.to === user || element.from === user || element.to === "Todos");
 
