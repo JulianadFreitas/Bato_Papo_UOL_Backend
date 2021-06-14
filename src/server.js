@@ -50,7 +50,7 @@ app.post("/messages", (req, res) => {
         time: dayjs().format('HH:mm:ss')
     };
     const participant = participants.find((e) => e.name === dataMessage.from);
-    if ((participant) && (dataMessage.to !== "") && (dataMessage.type === "message" || "private_message")) {
+    if ((participant) && (dataMessage.to !== "") && dataMessage.type === "message" || dataMessage.type === "private_message") {
         messagesInfos.push(dataMessage);
         return res.sendStatus(200)
     } else res.sendStatus(400)
