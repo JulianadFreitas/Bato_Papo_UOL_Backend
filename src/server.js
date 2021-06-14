@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dayjs from 'dayjs';
-
+import joi from 'joi';
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -13,12 +13,21 @@ let dataMessage = {};
 app.post("/participants", (req, res) => {
     const userName = req.body;
 
-    const participant = {
+    const schema = joi.object({
+        name: joi.string().required()
+    });
+
+    const isValid = schema.validate(req.body);
+
+    if(isValid.error) return res.sendStatus(422);
+
+   
+
+    if (!participants.some(({ name }) => name === participant.name)) {
+         const participant = {
         name: userName.name,
         lastStatus: Date.now()
     }
-
-    if (!participants.some(({ name }) => name === participant.name)) {
         participants.push(participant);
 
         messagesInfos.push(
@@ -42,6 +51,17 @@ app.get("/participants", (req, res) => {
 app.post("/messages", (req, res) => {
     const headerOfMessages = req.headers;
     const userMessages = req.body;
+
+
+    const schema = joi.object({
+        to: joi.string().required(),
+        text: joi.string().required(),
+        type:  joi.string().valid("message", "private_message").required()
+    });
+
+    const isValid = schema.validate(req.body);
+
+    if(isValid.error) return res.sendStatus(422);
     dataMessage = {
         from: headerOfMessages.user,
         to: userMessages.to,
@@ -50,7 +70,7 @@ app.post("/messages", (req, res) => {
         time: dayjs().format('HH:mm:ss')
     };
     const participant = participants.find((e) => e.name === dataMessage.from);
-    if ((participant) && (dataMessage.to !== "") && dataMessage.type === "message" || dataMessage.type === "private_message") {
+    if (participant) {
         messagesInfos.push(dataMessage);
         return res.sendStatus(200)
     } else res.sendStatus(400)
@@ -81,7 +101,7 @@ setInterval(() => {
         }
     })
 
-}, 50000)
+}, 15000)
 
 
 app.listen(4000);
