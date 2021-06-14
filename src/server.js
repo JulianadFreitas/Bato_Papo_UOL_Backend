@@ -64,7 +64,7 @@ app.get("/messages", (req, res) => {
 
 app.post("/status", (req, res) => {
     const user = req.header('User');
-    const participant = participants.find((e, i) => e.name === user);
+    const participant = participants.find((e) => e.name === user);
     participant ? participant.lastStatus = Date.now() && res.sendStatus(200) : res.sendStatus(400);
 });
 
