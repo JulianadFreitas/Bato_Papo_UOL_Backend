@@ -35,12 +35,8 @@ app.post("/participants", (req, res) => {
 
 });
 
-
 app.get("/participants", (req, res) => {
-    const headerOfParticipants = req.headers;
-
-    res.send(headerOfParticipants.user);
-
+     res.send(participants);
 });
 
 app.post("/messages", (req, res) => {
@@ -56,7 +52,6 @@ app.post("/messages", (req, res) => {
     const participant = participants.find((e) => e.name === dataMessage.from);
     if ((participant) && (dataMessage.to !== "") && (dataMessage.type === "message" || "private_message")) {
         messagesInfos.push(dataMessage);
-
         return res.sendStatus(200)
     } else res.sendStatus(400)
 
@@ -74,8 +69,6 @@ app.post("/status", (req, res) => {
 });
 
 
-
-
 setInterval(() => {
 
     participants = participants.filter(element => {
@@ -88,9 +81,7 @@ setInterval(() => {
         }
     })
 
-}, 15000)
+}, 50000)
 
 
-app.listen(4000, () => {
-
-});
+app.listen(4000);
