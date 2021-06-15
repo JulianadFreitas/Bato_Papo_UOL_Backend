@@ -13,7 +13,10 @@ let dataMessage = {};
 
 app.post("/participants", (req, res) => {
     const userName = req.body;
-
+    const participant = {
+            name: userName.name,
+            lastStatus: Date.now()
+        }
     const schema = joi.object({
         name: joi.string().required()
     });
@@ -21,10 +24,7 @@ app.post("/participants", (req, res) => {
     const isValid = schema.validate(req.body);
     if (isValid.error) return res.sendStatus(422);
     if (!participants.some(({ name }) => name === participant.name)) {
-        const participant = {
-            name: userName.name,
-            lastStatus: Date.now()
-        }
+        
         participants.push(participant);
         messagesInfos.push(
             {
@@ -88,7 +88,6 @@ app.post("/status", (req, res) => {
     participant ? participant.lastStatus = Date.now() && res.sendStatus(200) : res.sendStatus(400);
 });
 
-
 setInterval(() => {
 
     participants = participants.filter(element => {
@@ -101,7 +100,7 @@ setInterval(() => {
         }
     })
 
-}, 15000)
+}, 40000)
 
 
 app.listen(4000);
